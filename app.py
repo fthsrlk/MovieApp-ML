@@ -129,6 +129,44 @@ def load_data():
         ratings_df = pd.read_csv(RATINGS_DATA_PATH)
         logger.info(f"Değerlendirme verileri yüklendi: {len(ratings_df)} değerlendirme")
 
+def train_models():
+    """Modelleri eğit ve kaydet"""
+    global cf_model, cb_model, hybrid_model, items_df, ratings_df
+
+    if items_df is None or items_df.empty:
+        logger.warning('Eğitim için veri bulunamadı')
+        return False
+
+    if ratings_df is None or ratings_df.empty:
+        logger.warning('Değerlendirme verisi bulunamadı')
+        return False
+
+    try:
+        # Hibrit model eğitimi (hem CF hem CB eğitir)
+        logger.info('Hibrit model eğitiliyor...')
+        hybrid_model = HybridRecommender(cf_weight=0.5, cb_weight=0.5)
+        hybrid_model.fit(ratings_df, items_df)
+        
+        # Alt modelleri de kaydet
+        cf_model = hybrid_model.cf_model
+        cb_model = hybrid_model.cb_model
+        
+        cf_model.save(CF_MODEL_PATH)
+        logger.info(f'İşbirlikçi filtreleme modeli kaydedildi: {CF_MODEL_PATH}')
+        
+        cb_model.save(CB_MODEL_PATH)
+        logger.info(f'İçerik tabanlı model kaydedildi: {CB_MODEL_PATH}')
+        
+        hybrid_model.save(HYBRID_MODEL_PATH)
+        logger.info(f'Hibrit model kaydedildi: {HYBRID_MODEL_PATH}')
+
+        return True
+    except Exception as e:
+        logger.error(f'Model eğitim hatası: {str(e)}')
+        import traceback
+        traceback.print_exc()
+        return False
+
 def generate_token(user_id):
     """JWT token oluştur"""
     payload = {
@@ -336,7 +374,7 @@ def recommendations():
     """Öneriler sayfası"""
     user_id = request.args.get('user_id', 1, type=int)
 
-    # ML önerileri
+    # ML önerileri - template'in beklediği formatta
     ml_recommendations = []
     if hybrid_model or cb_model:
         raw_recommendations = get_ml_recommendations(user_id, n=20)
@@ -344,18 +382,32 @@ def recommendations():
             item_id = convert_numpy_types(item_id)
             if items_df is not None and item_id in items_df['item_id'].values:
                 item_info = items_df[items_df['item_id'] == item_id].iloc[0].to_dict()
+                # Template'in beklediği format: {'info': {...}, 'score': ...}
+                item_info['id'] = item_id  # 'item_id' yerine 'id' de ekle
                 item_info['score'] = convert_numpy_types(score)
-                ml_recommendations.append(item_info)
+                ml_recommendations.append({
+                    'info': item_info,
+                    'score': convert_numpy_types(score)
+                })
 
     # Popüler içerikler
     popular_movies = get_popular_movies()[:10]
     popular_tv = get_popular_tv()[:10]
+    
+    # Template için user_watchlist'i uygun formata çevir
+    watchlist_by_type = {'movie': [], 'tv': []}
+    for key, item_data in user_watchlist.items():
+        media_type = item_data.get('media_type', 'movie')
+        item_id = item_data.get('item_id')
+        if media_type in watchlist_by_type and item_id:
+            watchlist_by_type[media_type].append(item_id)
 
     return render_template('recommendations.html',
                          ml_recommendations=ml_recommendations,
                          popular_movies=popular_movies,
                          popular_tv=popular_tv,
-                         user_id=user_id)
+                         user_id=user_id,
+                         user_watchlist=watchlist_by_type)
 
 @app.route('/watchlist')
 def watchlist():
@@ -686,6 +738,11 @@ if __name__ == '__main__':
     # Verileri ve modelleri yükle
     load_data()
     load_models()
+    
+    # Modeller yoksa eğit
+    if cb_model is None and items_df is not None:
+        logger.info('ML modelleri bulunamadı, eğitim başlatılıyor...')
+        train_models()
 
     # Uygulama host ve port bilgileri
     host = os.getenv('API_HOST', '0.0.0.0')
