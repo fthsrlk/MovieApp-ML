@@ -406,7 +406,7 @@ def train_models():
     try:
         # İşbirlikçi filtreleme modeli
         cf_model = CollaborativeFiltering(
-            method='als',
+            method='matrix-factorization',
             num_factors=100,
             reg_param=0.1
         )
@@ -414,7 +414,7 @@ def train_models():
         
         # İçerik tabanlı filtreleme modeli
         cb_model = ContentBasedFiltering(min_rating=3.0)
-        cb_model.fit(items_df, ratings_df)
+        cb_model.fit(items_df)
         
         # Hibrit model
         hybrid_model = HybridRecommender(
@@ -425,9 +425,9 @@ def train_models():
         )
         
         # Modelleri kaydet
-        save_model(cf_model, CF_MODEL_PATH)
-        save_model(cb_model, CB_MODEL_PATH)
-        save_model(hybrid_model, HYBRID_MODEL_PATH)
+        cf_model.save(CF_MODEL_PATH)
+        cb_model.save(CB_MODEL_PATH)
+        hybrid_model.save(HYBRID_MODEL_PATH)
         
         logger.info("Modeller başarıyla eğitildi ve kaydedildi")
         return True

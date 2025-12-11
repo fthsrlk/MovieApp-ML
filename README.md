@@ -165,6 +165,26 @@ GET  /api/recommendations/trending             # Trend öneriler
 POST /api/recommendations/feedback             # Öneri geri bildirimi
 ```
 
+### Örnek API Kullanımı
+
+```python
+import requests
+
+# Giriş yapma
+response = requests.post('http://localhost:5000/api/auth/login', json={
+    'email': 'user@example.com',
+    'password': 'password123'
+})
+token = response.json()['access_token']
+
+# Kişiselleştirilmiş öneriler alma
+headers = {'Authorization': f'Bearer {token}'}
+recommendations = requests.get(
+    'http://localhost:5000/api/recommendations/movies/1',
+    headers=headers
+).json()
+```
+
 ## 🧮 Makine Öğrenmesi Algoritmaları
 
 ### Content-Based Filtering
@@ -233,6 +253,102 @@ Hybrid Model:
 - F1-Score: 0.79
 ```
 
+## 🔧 Yapılandırma
+
+### Model Parametreleri
+```python
+# config.py
+RECOMMENDATION_CONFIG = {
+    'content_weight': 0.6,      # Content-based ağırlığı
+    'collaborative_weight': 0.4, # Collaborative ağırlığı
+    'min_ratings': 5,           # Minimum rating sayısı
+    'top_k': 20,               # Öneri sayısı
+    'similarity_threshold': 0.5, # Benzerlik eşiği
+    'update_frequency': 'daily'  # Model güncelleme sıklığı
+}
+```
+
+### Cache Ayarları
+```python
+CACHE_CONFIG = {
+    'redis_host': 'localhost',
+    'redis_port': 6379,
+    'cache_timeout': 3600,      # 1 saat
+    'cache_recommendations': True,
+    'cache_movie_data': True
+}
+```
+
+## 🧪 Test Etme
+
+```bash
+# Unit testler
+python -m pytest tests/
+
+# Coverage report
+python -m pytest --cov=app tests/
+
+# Load testing
+locust -f tests/load_test.py --host=http://localhost:5000
+```
+
+## 📈 Production Deployment
+
+### Gunicorn ile Production
+```bash
+gunicorn --bind 0.0.0.0:5000 --workers 4 wsgi:app
+```
+
+### Nginx Konfigürasyonu
+```nginx
+server {
+    listen 80;
+    server_name your-domain.com;
+    
+    location / {
+        proxy_pass http://127.0.0.1:5000;
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+    }
+}
+```
+
+### Docker Compose
+```yaml
+version: '3.8'
+services:
+  app:
+    build: .
+    ports:
+      - "5000:5000"
+    environment:
+      - TMDB_API_KEY=${TMDB_API_KEY}
+    depends_on:
+      - redis
+  
+  redis:
+    image: redis:alpine
+    ports:
+      - "6379:6379"
+```
+
+## 🔍 Monitoring ve Analytics
+
+### Metriklerin Takibi
+- **API Response Times**: Endpoint performans metrikleri
+- **Recommendation Quality**: A/B test sonuçları
+- **User Engagement**: Click-through rates
+- **Model Accuracy**: Sürekli model değerlendirme
+
+### Logging
+```python
+import logging
+
+# Recommendation events
+logger.info(f"User {user_id} received {len(recommendations)} recommendations")
+logger.info(f"Click-through rate: {ctr:.2%}")
+```
+
 ## 🤝 Katkıda Bulunma
 
 1. Fork edin
@@ -240,6 +356,19 @@ Hybrid Model:
 3. Değişikliklerinizi commit edin (`git commit -m 'Add amazing ML feature'`)
 4. Branch'inizi push edin (`git push origin feature/amazing-ml-feature`)
 5. Pull Request oluşturun
+
+### Development Guidelines
+- PEP 8 Python style guide'ı takip edin
+- Unit testler yazın
+- Docstrings ekleyin
+- Model performansını benchmark edin
+
+## 📚 Kaynaklar ve Referanslar
+
+- [Recommender Systems Handbook](https://link.springer.com/book/10.1007/978-1-4899-7637-6)
+- [scikit-learn Documentation](https://scikit-learn.org/)
+- [Flask RESTful API Guide](https://flask-restful.readthedocs.io/)
+- [TMDb API Documentation](https://developers.themoviedb.org/3)
 
 ## 📝 Lisans
 
@@ -249,8 +378,7 @@ Bu proje MIT lisansı altında lisanslanmıştır. Detaylar için `LICENSE` dosy
 
 **Fatih Şarlak**
 - GitHub: [@fthsrlk](https://github.com/fthsrlk)
-- Email: [fatihhars70@gmail.com]
-- Linked in: [https://www.linkedin.com/in/fatih-%C5%9Farlak-63b369275/]
+- Email: [email@example.com]
 
 ## 🙏 Teşekkürler
 
@@ -261,4 +389,4 @@ Bu proje MIT lisansı altında lisanslanmıştır. Detaylar için `LICENSE` dosy
 
 ---
 
-⭐ **Bu projeyi beğendiyseniz star vermeyi unutmayın!**
+⭐ **Bu projeyi beğendiyseniz star vermeyi unutmayın!** 

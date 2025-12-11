@@ -66,11 +66,17 @@ class ContentBasedFiltering:
         id_column = 'id' if 'id' in self.items_df.columns else 'item_id'
         self.items_df[id_column] = self.items_df[id_column].astype('Int64')
         
-        # Öğe kimliklerinin dizinini oluştur (item_id -> index eşleşmesi) 
+        # Öğe kimliklerinin dizinini oluştur (item_id -> index eşleşmesi)
         self.item_indices = {}
+        self.item_map = {}
+        self.rev_item_map = {}
+        self.item_ids = []
         for i, item_id in enumerate(self.items_df[id_column]):
             if pd.notna(item_id):
                 self.item_indices[item_id] = i
+                self.item_map[item_id] = i
+                self.rev_item_map[i] = item_id
+                self.item_ids.append(item_id)
         
         # Özellik metni oluştur - zengin ve detaylı
         self.items_df['feature_text'] = self.items_df.apply(self._create_feature_text, axis=1)
@@ -84,15 +90,19 @@ class ContentBasedFiltering:
         try:
             # Özellik matrisini oluştur
             self.tfidf_matrix = self.vectorizer.fit_transform(self.items_df['feature_text'])
-            
+
+            # item_features'ı da ayarla (user profile oluşturma için gerekli)
+            self.item_features = self.tfidf_matrix
+
             # Kosinüs benzerlik matrisini oluştur
             self.cosine_sim = cosine_similarity(self.tfidf_matrix, self.tfidf_matrix)
-            
+
             print(f"İçerik tabanlı model oluşturuldu: {len(self.items_df)} öğe, {self.tfidf_matrix.shape[1]} özellik")
         except Exception as e:
             print(f"TF-IDF matrisi oluşturulurken hata: {str(e)}")
             # Boş matrisi oluştur
             self.tfidf_matrix = None
+            self.item_features = None
             self.cosine_sim = np.zeros((len(self.items_df), len(self.items_df)))
         
         return self
@@ -345,10 +355,32 @@ class ContentBasedFiltering:
         
         return item_scores[:n]
     
+    def _find_similar_user(self, user_id, ratings_df):
+        """
+        Benzer bir kullanıcı bulur (profili olan kullanıcılar arasından)
+
+        Args:
+            user_id: Kullanıcı ID
+            ratings_df (pd.DataFrame): Değerlendirme verileri
+
+        Returns:
+            int or None: Benzer kullanıcı ID veya bulunamazsa None
+        """
+        # Profili olan kullanıcıları kontrol et
+        if len(self.user_profiles) == 0:
+            return None
+
+        # Profili olan herhangi bir kullanıcıyı döndür
+        for uid in self.user_profiles.keys():
+            if uid != user_id:
+                return uid
+
+        return None
+
     def _create_user_profile_for_single_user(self, user_id, user_ratings_df):
         """
         Tek bir kullanıcı için profil vektörü oluşturur
-        
+
         Args:
             user_id: Kullanıcı ID
             user_ratings_df (pd.DataFrame): Kullanıcının değerlendirmeleri
