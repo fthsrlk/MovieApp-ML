@@ -44,8 +44,8 @@ load_dotenv()
 
 # Flask uygulamasını başlat
 app = Flask(__name__,
-            template_folder='ml_recommendation_engine/app/templates',
-            static_folder='ml_recommendation_engine/app/static')
+            template_folder=os.path.join(current_dir, 'ml_recommendation_engine/app/templates'),
+            static_folder=os.path.join(current_dir, 'ml_recommendation_engine/app/static'))
 
 CORS(app)  # CORS desteği ekle
 
@@ -291,13 +291,25 @@ def search():
     if not query:
         return render_template('search.html')
 
-    movies = search_movies(query)
-    tv_series = search_tv_series(query)
+    movie_results = search_movies(query)
+    tv_results = search_tv_series(query)
 
     return render_template('search.html',
                          query=query,
-                         movies=movies,
-                         tv_series=tv_series)
+                         movie_results=movie_results,
+                         tv_results=tv_results)
+
+@app.route('/detail/<media_type>/<int:item_id>')
+def detail(media_type, item_id):
+    """Detay sayfası - film veya dizi"""
+    if media_type == 'movie':
+        item = get_movie_details(item_id)
+    else:
+        item = get_tv_details(item_id)
+
+    if not item:
+        return redirect(url_for('index'))
+    return render_template('detail.html', item=item, content_type=media_type)
 
 @app.route('/movie/<int:movie_id>')
 def movie_detail(movie_id):
@@ -316,7 +328,7 @@ def tv_detail(tv_id):
     return render_template('detail.html', item=tv, content_type='tv')
 
 @app.route('/recommendations')
-def recommendations_page():
+def recommendations():
     """Öneriler sayfası"""
     user_id = request.args.get('user_id', 1, type=int)
 
@@ -342,7 +354,7 @@ def recommendations_page():
                          user_id=user_id)
 
 @app.route('/watchlist')
-def watchlist_page():
+def watchlist():
     """İzleme listesi sayfası"""
     return render_template('watchlist.html', watchlist=user_watchlist)
 
@@ -545,6 +557,45 @@ def api_watchlist():
         if item_id in user_watchlist:
             del user_watchlist[item_id]
         return jsonify({'success': True, 'message': 'Listeden çıkarıldı'})
+
+@app.route('/api/watchlist/add', methods=['POST'])
+def api_watchlist_add():
+    """İzleme listesine ekle"""
+    global user_watchlist
+
+    data = request.json
+    media_type = data.get('media_type', 'movie')
+    item_id = data.get('item_id')
+
+    if not item_id:
+        return jsonify({'success': False, 'error': 'item_id gerekli'}), 400
+
+    # Benzersiz anahtar oluştur
+    key = f"{media_type}_{item_id}"
+    user_watchlist[key] = {
+        'item_id': item_id,
+        'media_type': media_type
+    }
+
+    return jsonify({'success': True, 'message': 'Listeye eklendi'})
+
+@app.route('/api/watchlist/remove', methods=['POST'])
+def api_watchlist_remove():
+    """İzleme listesinden çıkar"""
+    global user_watchlist
+
+    data = request.json
+    media_type = data.get('media_type', 'movie')
+    item_id = data.get('item_id')
+
+    if not item_id:
+        return jsonify({'success': False, 'error': 'item_id gerekli'}), 400
+
+    key = f"{media_type}_{item_id}"
+    if key in user_watchlist:
+        del user_watchlist[key]
+
+    return jsonify({'success': True, 'message': 'Listeden çıkarıldı'})
 
 # --- Uygulama Başlatma ---
 
