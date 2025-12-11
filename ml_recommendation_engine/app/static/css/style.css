@@ -1823,3 +1823,16 @@ body.page-index.fullpage-active .dot-nav {
    bu yeni yatay stillerle çakışabilir. Önceki dikey stilleri (position:sticky vs.) 
    ya tamamen silin ya da yorum satırına alın. Şimdilik yukarıdaki yeni kuralların 
    eskilerinin üzerine yazacağını varsayıyorum, ama emin olmak için kontrol gerekebilir. */ 
+/* Nav Divider */
+.nav-divider {
+    border-top: 1px solid rgba(255,255,255,0.2);
+    margin: 15px 0;
+    padding: 0;
+    list-style: none;
+}
+
+.overlay-nav-item i {
+    margin-right: 10px;
+    width: 20px;
+    text-align: center;
+}

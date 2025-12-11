@@ -3,11 +3,12 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>{% block title %}MovieApp{% endblock %}</title> {# Her sayfanın kendi başlığını ayarlayabilmesi için block #}
+    <title>{% block title %}MovieApp{% endblock %}</title>
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
-    {% block head_extra %}{% endblock %} {# Her sayfaya özel ek CSS veya meta etiketleri için #}
+    {% block head_extra %}{% endblock %}
+    {% block extra_css %}{% endblock %}
 </head>
 <body class="{% if request.endpoint == 'index' %}page-index fullpage-active{% else %}page-standard{% endif %}">
     {# Sabit Ana Sayfa Butonu #}
@@ -26,44 +27,22 @@
     <nav class="overlay-nav" id="overlay-nav">
         <button class="overlay-nav-close" id="overlay-nav-close" aria-label="Menüyü Kapat">&times;</button>
         <ul>
-            <li><a href="{{ url_for('index') }}" class="overlay-nav-item {% if request.endpoint == 'index' %}active{% endif %}">Ana Sayfa</a></li>
-            <li><a href="{{ url_for('search') }}" class="overlay-nav-item {% if request.endpoint == 'search' %}active{% endif %}">Ara</a></li>
-            <li><a href="{{ url_for('watchlist') }}" class="overlay-nav-item {% if request.endpoint == 'watchlist' %}active{% endif %}">İzleme Listem</a></li>
-            <li><a href="{{ url_for('recommendations') }}" class="overlay-nav-item {% if request.endpoint == 'recommendations' %}active{% endif %}">Öneriler</a></li>
-            <li style="border-top: 1px solid rgba(255,255,255,0.2); margin: 15px 0; padding-top: 15px;">
-                {% if current_user.is_authenticated %}
-                    <a href="{{ url_for('profile') }}" class="overlay-nav-item"><i class="fas fa-user"></i> {{ current_user.username }}</a>
-                {% else %}
-                    <a href="{{ url_for('login') }}" class="overlay-nav-item"><i class="fas fa-sign-in-alt"></i> Giriş Yap</a>
-                {% endif %}
-            </li>
+            <li><a href="{{ url_for('index') }}" class="overlay-nav-item {% if request.endpoint == 'index' %}active{% endif %}"><i class="fas fa-home"></i> Ana Sayfa</a></li>
+            <li><a href="{{ url_for('search') }}" class="overlay-nav-item {% if request.endpoint == 'search' %}active{% endif %}"><i class="fas fa-search"></i> Ara</a></li>
+            <li><a href="{{ url_for('watchlist') }}" class="overlay-nav-item {% if request.endpoint == 'watchlist' %}active{% endif %}"><i class="fas fa-bookmark"></i> İzleme Listem</a></li>
+            <li><a href="{{ url_for('recommendations') }}" class="overlay-nav-item {% if request.endpoint == 'recommendations' %}active{% endif %}"><i class="fas fa-magic"></i> Öneriler</a></li>
+
+            {# Kullanıcı Bölümü #}
+            <li class="nav-divider"></li>
+            {% if current_user.is_authenticated %}
+                <li><a href="{{ url_for('profile') }}" class="overlay-nav-item {% if request.endpoint == 'profile' %}active{% endif %}"><i class="fas fa-user-circle"></i> {{ current_user.username }}</a></li>
+                <li><a href="{{ url_for('logout') }}" class="overlay-nav-item"><i class="fas fa-sign-out-alt"></i> Çıkış Yap</a></li>
+            {% else %}
+                <li><a href="{{ url_for('login') }}" class="overlay-nav-item {% if request.endpoint == 'login' %}active{% endif %}"><i class="fas fa-sign-in-alt"></i> Giriş Yap</a></li>
+                <li><a href="{{ url_for('register') }}" class="overlay-nav-item {% if request.endpoint == 'register' %}active{% endif %}"><i class="fas fa-user-plus"></i> Kayıt Ol</a></li>
+            {% endif %}
         </ul>
     </nav>
-
-    {# Eski Header kaldırılacak veya gizlenecek. Şimdilik gizleyelim. #}
-    <header class="header" style="display: none !important;">
-        <div class="container header-container">
-            <a href="{{ url_for('index') }}" class="logo">MovieApp</a>
-            <nav class="nav">
-                {# Navigasyon linklerinin aktif durumunu request.endpoint ile kontrol edebilirsiniz #}
-                <a href="{{ url_for('index') }}" class="nav-item {% if request.endpoint == 'index' %}active{% endif %}">Ana Sayfa</a>
-                <a href="{{ url_for('search') }}" class="nav-item {% if request.endpoint == 'search' %}active{% endif %}">Ara</a>
-                <a href="{{ url_for('watchlist') }}" class="nav-item {% if request.endpoint == 'watchlist' %}active{% endif %}">İzleme Listem</a>
-                <a href="{{ url_for('recommendations') }}" class="nav-item {% if request.endpoint == 'recommendations' %}active{% endif %}">Öneriler</a>
-                <button id="clearAllDataBtn" class="nav-item btn-danger" style="cursor: pointer; border: none; color: white; background-color: var(--secondary-color); padding: 10px 18px; border-radius: var(--border-radius); margin-left: 25px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px;">Tüm Verileri Temizle</button>
-            </nav>
-        </div>
-    </header>
-
-    {% if request.endpoint == 'index' %}
-        {# Ana sayfanın hero bölümü ve diğer fullpage sectionları index.html'in kendi content bloğunda olacak #}
-    {% else %}
-    <section class="hero page-hero" style="padding: 60px 0; min-height: auto; background: var(--primary-color); display: none !important;"> {# Bu da gizlenebilir #}
-         <div class="container">
-             <h1>{% block page_title %}{% endblock %}</h1>
-         </div>
-     </section>
-    {% endif %}
 
     <main id="main-content-wrapper">
         {% block content %}{% endblock %}
@@ -73,4 +52,4 @@
     <script src="{{ url_for('static', filename='js/main.js') }}"></script>
     {% block scripts_extra %}{% endblock %}
 </body>
-</html> 
+</html>
