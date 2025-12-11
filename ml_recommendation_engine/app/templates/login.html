@@ -4,143 +4,306 @@
 
 {% block extra_css %}
 <style>
-    .auth-container {
-        min-height: calc(100vh - 200px);
+    .auth-page {
+        min-height: 100vh;
+        background: linear-gradient(135deg, var(--primary-color) 0%, var(--accent-color) 70%, #0f1c3d 100%);
         display: flex;
         align-items: center;
         justify-content: center;
         padding: 40px 20px;
+        position: relative;
+        overflow: hidden;
+    }
+
+    .auth-page::before {
+        content: '';
+        position: absolute;
+        width: 40vw;
+        height: 40vw;
+        background: radial-gradient(circle, rgba(233, 69, 96, 0.15) 0%, rgba(233, 69, 96, 0) 70%);
+        top: 10%;
+        left: 5%;
+        border-radius: 50%;
+        animation: slowDrift 20s ease-in-out infinite;
+    }
+
+    .auth-page::after {
+        content: '';
+        position: absolute;
+        width: 30vw;
+        height: 30vw;
+        background: radial-gradient(circle, rgba(15, 52, 96, 0.2) 0%, rgba(15, 52, 96, 0) 70%);
+        bottom: 5%;
+        right: 10%;
+        border-radius: 50%;
+        animation: slowDrift 20s ease-in-out infinite 5s;
+    }
+
+    @keyframes slowDrift {
+        0% { transform: translate(0, 0) scale(0.8); opacity: 0.1; }
+        25% { opacity: 0.3; }
+        50% { transform: translate(20px, -30px) scale(1.1); opacity: 0.2; }
+        75% { opacity: 0.4; }
+        100% { transform: translate(-10px, 15px) scale(0.9); opacity: 0.1; }
     }
 
     .auth-card {
-        background: white;
-        border-radius: 12px;
-        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
-        padding: 40px;
+        background: rgba(255, 255, 255, 0.95);
+        backdrop-filter: blur(10px);
+        border-radius: 16px;
+        box-shadow: 0 25px 50px rgba(0, 0, 0, 0.3);
+        padding: 50px 40px;
         width: 100%;
         max-width: 420px;
+        position: relative;
+        z-index: 1;
+        animation: fadeInUp 0.8s ease-out;
+    }
+
+    @keyframes fadeInUp {
+        from {
+            opacity: 0;
+            transform: translateY(30px);
+        }
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
     }
 
     .auth-header {
         text-align: center;
-        margin-bottom: 30px;
+        margin-bottom: 35px;
+    }
+
+    .auth-logo {
+        width: 80px;
+        height: 80px;
+        background: linear-gradient(135deg, var(--secondary-color), #d6304a);
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin: 0 auto 20px;
+        box-shadow: 0 10px 30px rgba(233, 69, 96, 0.3);
+    }
+
+    .auth-logo i {
+        font-size: 36px;
+        color: white;
     }
 
     .auth-header h1 {
         color: var(--primary-color);
         font-size: 28px;
-        margin-bottom: 10px;
+        font-weight: 700;
+        margin-bottom: 8px;
     }
 
     .auth-header p {
         color: #666;
-        font-size: 14px;
+        font-size: 15px;
     }
 
     .form-group {
-        margin-bottom: 20px;
+        margin-bottom: 24px;
     }
 
     .form-group label {
         display: block;
-        margin-bottom: 8px;
+        margin-bottom: 10px;
         font-weight: 600;
-        color: var(--dark-color);
+        color: var(--primary-color);
+        font-size: 14px;
+    }
+
+    .form-group label i {
+        margin-right: 8px;
+        color: var(--secondary-color);
     }
 
     .form-group input {
         width: 100%;
-        padding: 12px 16px;
+        padding: 14px 18px;
         border: 2px solid #e0e0e0;
-        border-radius: 8px;
+        border-radius: 10px;
         font-size: 16px;
-        transition: border-color 0.3s;
+        transition: all 0.3s ease;
+        background: #f8f9fa;
     }
 
     .form-group input:focus {
         outline: none;
         border-color: var(--secondary-color);
+        background: white;
+        box-shadow: 0 0 0 4px rgba(233, 69, 96, 0.1);
+    }
+
+    .form-group input::placeholder {
+        color: #aaa;
     }
 
     .btn-auth {
         width: 100%;
-        padding: 14px;
-        background: var(--secondary-color);
+        padding: 16px;
+        background: linear-gradient(135deg, var(--secondary-color), #d6304a);
         color: white;
         border: none;
-        border-radius: 8px;
-        font-size: 16px;
+        border-radius: 10px;
+        font-size: 17px;
         font-weight: 600;
         cursor: pointer;
-        transition: background 0.3s;
+        transition: all 0.3s ease;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 10px;
+        box-shadow: 0 4px 15px rgba(233, 69, 96, 0.3);
     }
 
     .btn-auth:hover {
-        background: #25a56a;
+        transform: translateY(-2px);
+        box-shadow: 0 8px 25px rgba(233, 69, 96, 0.4);
+    }
+
+    .btn-auth:active {
+        transform: translateY(0);
+    }
+
+    .auth-divider {
+        display: flex;
+        align-items: center;
+        margin: 30px 0;
+        color: #999;
+        font-size: 13px;
+    }
+
+    .auth-divider::before,
+    .auth-divider::after {
+        content: '';
+        flex: 1;
+        height: 1px;
+        background: #e0e0e0;
+    }
+
+    .auth-divider span {
+        padding: 0 15px;
     }
 
     .auth-footer {
         text-align: center;
-        margin-top: 20px;
         color: #666;
+        font-size: 15px;
     }
 
     .auth-footer a {
         color: var(--secondary-color);
         text-decoration: none;
         font-weight: 600;
+        transition: color 0.3s;
     }
 
     .auth-footer a:hover {
+        color: #d6304a;
         text-decoration: underline;
     }
 
     .alert {
-        padding: 12px 16px;
-        border-radius: 8px;
-        margin-bottom: 20px;
+        padding: 14px 18px;
+        border-radius: 10px;
+        margin-bottom: 25px;
         font-size: 14px;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+    }
+
+    .alert i {
+        font-size: 18px;
     }
 
     .alert-danger {
-        background: #fee2e2;
+        background: linear-gradient(135deg, #fee2e2, #fecaca);
         color: #dc2626;
         border: 1px solid #fca5a5;
     }
 
     .alert-success {
-        background: #dcfce7;
+        background: linear-gradient(135deg, #dcfce7, #bbf7d0);
         color: #16a34a;
         border: 1px solid #86efac;
+    }
+
+    .forgot-password {
+        text-align: right;
+        margin-top: -15px;
+        margin-bottom: 20px;
+    }
+
+    .forgot-password a {
+        color: #888;
+        font-size: 13px;
+        text-decoration: none;
+        transition: color 0.3s;
+    }
+
+    .forgot-password a:hover {
+        color: var(--secondary-color);
+    }
+
+    @media (max-width: 480px) {
+        .auth-card {
+            padding: 35px 25px;
+            margin: 0 15px;
+        }
+
+        .auth-logo {
+            width: 70px;
+            height: 70px;
+        }
+
+        .auth-logo i {
+            font-size: 30px;
+        }
+
+        .auth-header h1 {
+            font-size: 24px;
+        }
     }
 </style>
 {% endblock %}
 
 {% block content %}
-<div class="auth-container">
+<div class="auth-page">
     <div class="auth-card">
         <div class="auth-header">
-            <h1><i class="fas fa-film"></i> MovieApp</h1>
-            <p>Hesabınıza giriş yapın</p>
+            <div class="auth-logo">
+                <i class="fas fa-film"></i>
+            </div>
+            <h1>Tekrar Hoş Geldiniz!</h1>
+            <p>Hesabınıza giriş yapın ve keşfetmeye devam edin</p>
         </div>
 
         {% with messages = get_flashed_messages(with_categories=true) %}
             {% if messages %}
                 {% for category, message in messages %}
-                    <div class="alert alert-{{ category }}">{{ message }}</div>
+                    <div class="alert alert-{{ category }}">
+                        <i class="fas {% if category == 'danger' %}fa-exclamation-circle{% else %}fa-check-circle{% endif %}"></i>
+                        {{ message }}
+                    </div>
                 {% endfor %}
             {% endif %}
         {% endwith %}
 
         <form method="POST" action="{{ url_for('login') }}">
             <div class="form-group">
-                <label for="email">E-posta</label>
-                <input type="email" id="email" name="email" required placeholder="ornek@email.com">
+                <label for="email"><i class="fas fa-envelope"></i> E-posta Adresi</label>
+                <input type="email" id="email" name="email" required placeholder="ornek@email.com" autocomplete="email">
             </div>
 
             <div class="form-group">
-                <label for="password">Şifre</label>
-                <input type="password" id="password" name="password" required placeholder="••••••••">
+                <label for="password"><i class="fas fa-lock"></i> Şifre</label>
+                <input type="password" id="password" name="password" required placeholder="••••••••" autocomplete="current-password">
             </div>
 
             <button type="submit" class="btn-auth">
@@ -148,8 +311,12 @@
             </button>
         </form>
 
+        <div class="auth-divider">
+            <span>veya</span>
+        </div>
+
         <div class="auth-footer">
-            <p>Hesabınız yok mu? <a href="{{ url_for('register') }}">Kayıt Ol</a></p>
+            <p>Hesabınız yok mu? <a href="{{ url_for('register') }}">Hemen Kayıt Olun</a></p>
         </div>
     </div>
 </div>

@@ -4,21 +4,71 @@
 
 {% block extra_css %}
 <style>
-    .auth-container {
-        min-height: calc(100vh - 200px);
+    .auth-page {
+        min-height: 100vh;
+        background: linear-gradient(135deg, var(--primary-color) 0%, var(--accent-color) 70%, #0f1c3d 100%);
         display: flex;
         align-items: center;
         justify-content: center;
         padding: 40px 20px;
+        position: relative;
+        overflow: hidden;
+    }
+
+    .auth-page::before {
+        content: '';
+        position: absolute;
+        width: 40vw;
+        height: 40vw;
+        background: radial-gradient(circle, rgba(233, 69, 96, 0.15) 0%, rgba(233, 69, 96, 0) 70%);
+        top: 10%;
+        left: 5%;
+        border-radius: 50%;
+        animation: slowDrift 20s ease-in-out infinite;
+    }
+
+    .auth-page::after {
+        content: '';
+        position: absolute;
+        width: 30vw;
+        height: 30vw;
+        background: radial-gradient(circle, rgba(15, 52, 96, 0.2) 0%, rgba(15, 52, 96, 0) 70%);
+        bottom: 5%;
+        right: 10%;
+        border-radius: 50%;
+        animation: slowDrift 20s ease-in-out infinite 5s;
+    }
+
+    @keyframes slowDrift {
+        0% { transform: translate(0, 0) scale(0.8); opacity: 0.1; }
+        25% { opacity: 0.3; }
+        50% { transform: translate(20px, -30px) scale(1.1); opacity: 0.2; }
+        75% { opacity: 0.4; }
+        100% { transform: translate(-10px, 15px) scale(0.9); opacity: 0.1; }
     }
 
     .auth-card {
-        background: white;
-        border-radius: 12px;
-        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
-        padding: 40px;
+        background: rgba(255, 255, 255, 0.95);
+        backdrop-filter: blur(10px);
+        border-radius: 16px;
+        box-shadow: 0 25px 50px rgba(0, 0, 0, 0.3);
+        padding: 45px 40px;
         width: 100%;
-        max-width: 420px;
+        max-width: 450px;
+        position: relative;
+        z-index: 1;
+        animation: fadeInUp 0.8s ease-out;
+    }
+
+    @keyframes fadeInUp {
+        from {
+            opacity: 0;
+            transform: translateY(30px);
+        }
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
     }
 
     .auth-header {
@@ -26,15 +76,33 @@
         margin-bottom: 30px;
     }
 
+    .auth-logo {
+        width: 80px;
+        height: 80px;
+        background: linear-gradient(135deg, var(--secondary-color), #d6304a);
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin: 0 auto 20px;
+        box-shadow: 0 10px 30px rgba(233, 69, 96, 0.3);
+    }
+
+    .auth-logo i {
+        font-size: 36px;
+        color: white;
+    }
+
     .auth-header h1 {
         color: var(--primary-color);
         font-size: 28px;
-        margin-bottom: 10px;
+        font-weight: 700;
+        margin-bottom: 8px;
     }
 
     .auth-header p {
         color: #666;
-        font-size: 14px;
+        font-size: 15px;
     }
 
     .form-group {
@@ -45,87 +113,49 @@
         display: block;
         margin-bottom: 8px;
         font-weight: 600;
-        color: var(--dark-color);
+        color: var(--primary-color);
+        font-size: 14px;
+    }
+
+    .form-group label i {
+        margin-right: 8px;
+        color: var(--secondary-color);
     }
 
     .form-group input {
         width: 100%;
-        padding: 12px 16px;
+        padding: 14px 18px;
         border: 2px solid #e0e0e0;
-        border-radius: 8px;
+        border-radius: 10px;
         font-size: 16px;
-        transition: border-color 0.3s;
+        transition: all 0.3s ease;
+        background: #f8f9fa;
     }
 
     .form-group input:focus {
         outline: none;
         border-color: var(--secondary-color);
+        background: white;
+        box-shadow: 0 0 0 4px rgba(233, 69, 96, 0.1);
+    }
+
+    .form-group input::placeholder {
+        color: #aaa;
     }
 
     .form-group small {
         display: block;
-        margin-top: 5px;
+        margin-top: 6px;
         color: #888;
         font-size: 12px;
     }
 
-    .btn-auth {
-        width: 100%;
-        padding: 14px;
-        background: var(--secondary-color);
-        color: white;
-        border: none;
-        border-radius: 8px;
-        font-size: 16px;
-        font-weight: 600;
-        cursor: pointer;
-        transition: background 0.3s;
-    }
-
-    .btn-auth:hover {
-        background: #25a56a;
-    }
-
-    .auth-footer {
-        text-align: center;
-        margin-top: 20px;
-        color: #666;
-    }
-
-    .auth-footer a {
-        color: var(--secondary-color);
-        text-decoration: none;
-        font-weight: 600;
-    }
-
-    .auth-footer a:hover {
-        text-decoration: underline;
-    }
-
-    .alert {
-        padding: 12px 16px;
-        border-radius: 8px;
-        margin-bottom: 20px;
-        font-size: 14px;
-    }
-
-    .alert-danger {
-        background: #fee2e2;
-        color: #dc2626;
-        border: 1px solid #fca5a5;
-    }
-
-    .alert-success {
-        background: #dcfce7;
-        color: #16a34a;
-        border: 1px solid #86efac;
-    }
-
     .password-requirements {
-        background: #f8f9fa;
-        padding: 12px;
+        background: linear-gradient(135deg, #f8f9fa, #e9ecef);
+        padding: 12px 15px;
         border-radius: 8px;
         margin-top: 10px;
+        border-left: 3px solid var(--secondary-color);
     }
 
     .password-requirements ul {
@@ -134,54 +164,207 @@
         font-size: 12px;
         color: #666;
     }
+
+    .password-requirements li {
+        margin-bottom: 4px;
+    }
+
+    .password-requirements li:last-child {
+        margin-bottom: 0;
+    }
+
+    .btn-auth {
+        width: 100%;
+        padding: 16px;
+        background: linear-gradient(135deg, var(--secondary-color), #d6304a);
+        color: white;
+        border: none;
+        border-radius: 10px;
+        font-size: 17px;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 10px;
+        box-shadow: 0 4px 15px rgba(233, 69, 96, 0.3);
+        margin-top: 10px;
+    }
+
+    .btn-auth:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 8px 25px rgba(233, 69, 96, 0.4);
+    }
+
+    .btn-auth:active {
+        transform: translateY(0);
+    }
+
+    .auth-divider {
+        display: flex;
+        align-items: center;
+        margin: 25px 0;
+        color: #999;
+        font-size: 13px;
+    }
+
+    .auth-divider::before,
+    .auth-divider::after {
+        content: '';
+        flex: 1;
+        height: 1px;
+        background: #e0e0e0;
+    }
+
+    .auth-divider span {
+        padding: 0 15px;
+    }
+
+    .auth-footer {
+        text-align: center;
+        color: #666;
+        font-size: 15px;
+    }
+
+    .auth-footer a {
+        color: var(--secondary-color);
+        text-decoration: none;
+        font-weight: 600;
+        transition: color 0.3s;
+    }
+
+    .auth-footer a:hover {
+        color: #d6304a;
+        text-decoration: underline;
+    }
+
+    .alert {
+        padding: 14px 18px;
+        border-radius: 10px;
+        margin-bottom: 25px;
+        font-size: 14px;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+    }
+
+    .alert i {
+        font-size: 18px;
+    }
+
+    .alert-danger {
+        background: linear-gradient(135deg, #fee2e2, #fecaca);
+        color: #dc2626;
+        border: 1px solid #fca5a5;
+    }
+
+    .alert-success {
+        background: linear-gradient(135deg, #dcfce7, #bbf7d0);
+        color: #16a34a;
+        border: 1px solid #86efac;
+    }
+
+    .features-list {
+        display: flex;
+        justify-content: center;
+        gap: 25px;
+        margin-top: 20px;
+        flex-wrap: wrap;
+    }
+
+    .feature-item {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        color: #666;
+        font-size: 13px;
+    }
+
+    .feature-item i {
+        color: var(--secondary-color);
+        font-size: 14px;
+    }
+
+    @media (max-width: 480px) {
+        .auth-card {
+            padding: 35px 25px;
+            margin: 0 15px;
+        }
+
+        .auth-logo {
+            width: 70px;
+            height: 70px;
+        }
+
+        .auth-logo i {
+            font-size: 30px;
+        }
+
+        .auth-header h1 {
+            font-size: 24px;
+        }
+
+        .features-list {
+            flex-direction: column;
+            gap: 10px;
+            align-items: center;
+        }
+    }
 </style>
 {% endblock %}
 
 {% block content %}
-<div class="auth-container">
+<div class="auth-page">
     <div class="auth-card">
         <div class="auth-header">
-            <h1><i class="fas fa-film"></i> MovieApp</h1>
-            <p>Yeni hesap oluşturun</p>
+            <div class="auth-logo">
+                <i class="fas fa-user-plus"></i>
+            </div>
+            <h1>Hesap Oluşturun</h1>
+            <p>Film keşfetmeye hemen başlayın</p>
         </div>
 
         {% with messages = get_flashed_messages(with_categories=true) %}
             {% if messages %}
                 {% for category, message in messages %}
-                    <div class="alert alert-{{ category }}">{{ message }}</div>
+                    <div class="alert alert-{{ category }}">
+                        <i class="fas {% if category == 'danger' %}fa-exclamation-circle{% else %}fa-check-circle{% endif %}"></i>
+                        {{ message }}
+                    </div>
                 {% endfor %}
             {% endif %}
         {% endwith %}
 
         <form method="POST" action="{{ url_for('register') }}">
             <div class="form-group">
-                <label for="username">Kullanıcı Adı</label>
+                <label for="username"><i class="fas fa-user"></i> Kullanıcı Adı</label>
                 <input type="text" id="username" name="username" required
-                       placeholder="kullanici_adi" minlength="3" maxlength="30">
+                       placeholder="kullanici_adi" minlength="3" maxlength="30" autocomplete="username">
                 <small>En az 3, en fazla 30 karakter</small>
             </div>
 
             <div class="form-group">
-                <label for="email">E-posta</label>
-                <input type="email" id="email" name="email" required placeholder="ornek@email.com">
+                <label for="email"><i class="fas fa-envelope"></i> E-posta Adresi</label>
+                <input type="email" id="email" name="email" required placeholder="ornek@email.com" autocomplete="email">
             </div>
 
             <div class="form-group">
-                <label for="password">Şifre</label>
+                <label for="password"><i class="fas fa-lock"></i> Şifre</label>
                 <input type="password" id="password" name="password" required
-                       placeholder="••••••••" minlength="6">
+                       placeholder="••••••••" minlength="6" autocomplete="new-password">
                 <div class="password-requirements">
                     <ul>
-                        <li>En az 6 karakter</li>
-                        <li>Harf ve rakam içermeli</li>
+                        <li>En az 6 karakter uzunluğunda</li>
+                        <li>Harf ve rakam içermelidir</li>
                     </ul>
                 </div>
             </div>
 
             <div class="form-group">
-                <label for="password_confirm">Şifre Tekrar</label>
+                <label for="password_confirm"><i class="fas fa-check-circle"></i> Şifre Tekrar</label>
                 <input type="password" id="password_confirm" name="password_confirm" required
-                       placeholder="••••••••">
+                       placeholder="••••••••" autocomplete="new-password">
             </div>
 
             <button type="submit" class="btn-auth">
@@ -189,8 +372,27 @@
             </button>
         </form>
 
+        <div class="auth-divider">
+            <span>veya</span>
+        </div>
+
         <div class="auth-footer">
-            <p>Zaten hesabınız var mı? <a href="{{ url_for('login') }}">Giriş Yap</a></p>
+            <p>Zaten hesabınız var mı? <a href="{{ url_for('login') }}">Giriş Yapın</a></p>
+        </div>
+
+        <div class="features-list">
+            <div class="feature-item">
+                <i class="fas fa-film"></i>
+                <span>10.000+ Film</span>
+            </div>
+            <div class="feature-item">
+                <i class="fas fa-magic"></i>
+                <span>Akıllı Öneriler</span>
+            </div>
+            <div class="feature-item">
+                <i class="fas fa-bookmark"></i>
+                <span>İzleme Listesi</span>
+            </div>
         </div>
     </div>
 </div>

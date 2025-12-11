@@ -4,49 +4,106 @@
 
 {% block extra_css %}
 <style>
+    .profile-page {
+        min-height: 100vh;
+        background: linear-gradient(135deg, var(--primary-color) 0%, var(--accent-color) 70%, #0f1c3d 100%);
+        padding: 100px 20px 60px;
+        position: relative;
+        overflow: hidden;
+    }
+
+    .profile-page::before {
+        content: '';
+        position: absolute;
+        width: 40vw;
+        height: 40vw;
+        background: radial-gradient(circle, rgba(233, 69, 96, 0.15) 0%, rgba(233, 69, 96, 0) 70%);
+        top: 10%;
+        left: 5%;
+        border-radius: 50%;
+        animation: slowDrift 20s ease-in-out infinite;
+    }
+
+    .profile-page::after {
+        content: '';
+        position: absolute;
+        width: 30vw;
+        height: 30vw;
+        background: radial-gradient(circle, rgba(15, 52, 96, 0.2) 0%, rgba(15, 52, 96, 0) 70%);
+        bottom: 5%;
+        right: 10%;
+        border-radius: 50%;
+        animation: slowDrift 20s ease-in-out infinite 5s;
+    }
+
+    @keyframes slowDrift {
+        0% { transform: translate(0, 0) scale(0.8); opacity: 0.1; }
+        25% { opacity: 0.3; }
+        50% { transform: translate(20px, -30px) scale(1.1); opacity: 0.2; }
+        75% { opacity: 0.4; }
+        100% { transform: translate(-10px, 15px) scale(0.9); opacity: 0.1; }
+    }
+
     .profile-container {
-        padding: 40px 20px;
-        max-width: 800px;
+        max-width: 900px;
         margin: 0 auto;
+        position: relative;
+        z-index: 1;
     }
 
     .profile-header {
-        background: linear-gradient(135deg, var(--primary-color), #2d3748);
-        border-radius: 16px;
-        padding: 40px;
-        color: white;
-        margin-bottom: 30px;
+        background: rgba(255, 255, 255, 0.95);
+        backdrop-filter: blur(10px);
+        border-radius: 20px;
+        padding: 50px 40px;
         text-align: center;
+        margin-bottom: 30px;
+        box-shadow: 0 25px 50px rgba(0, 0, 0, 0.2);
+        animation: fadeInUp 0.6s ease-out;
+    }
+
+    @keyframes fadeInUp {
+        from {
+            opacity: 0;
+            transform: translateY(30px);
+        }
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
     }
 
     .profile-avatar {
-        width: 100px;
-        height: 100px;
-        background: var(--secondary-color);
+        width: 120px;
+        height: 120px;
+        background: linear-gradient(135deg, var(--secondary-color), #d6304a);
         border-radius: 50%;
         display: flex;
         align-items: center;
         justify-content: center;
-        margin: 0 auto 20px;
-        font-size: 40px;
+        margin: 0 auto 25px;
+        font-size: 48px;
+        color: white;
+        box-shadow: 0 15px 40px rgba(233, 69, 96, 0.3);
     }
 
     .profile-name {
-        font-size: 28px;
+        font-size: 32px;
         font-weight: 700;
-        margin-bottom: 5px;
+        color: var(--primary-color);
+        margin-bottom: 8px;
     }
 
     .profile-email {
-        opacity: 0.8;
-        font-size: 14px;
+        color: #666;
+        font-size: 16px;
+        margin-bottom: 30px;
     }
 
     .profile-stats {
         display: flex;
         justify-content: center;
-        gap: 40px;
-        margin-top: 30px;
+        gap: 60px;
     }
 
     .stat-item {
@@ -54,36 +111,54 @@
     }
 
     .stat-value {
-        font-size: 32px;
+        font-size: 42px;
         font-weight: 700;
-        color: var(--secondary-color);
+        background: linear-gradient(135deg, var(--secondary-color), #d6304a);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
     }
 
     .stat-label {
         font-size: 14px;
-        opacity: 0.8;
+        color: #666;
+        font-weight: 500;
+        margin-top: 5px;
     }
 
     .profile-section {
-        background: white;
-        border-radius: 12px;
-        padding: 24px;
-        margin-bottom: 20px;
-        box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+        background: rgba(255, 255, 255, 0.95);
+        backdrop-filter: blur(10px);
+        border-radius: 16px;
+        padding: 30px;
+        margin-bottom: 25px;
+        box-shadow: 0 15px 35px rgba(0, 0, 0, 0.15);
+        animation: fadeInUp 0.6s ease-out backwards;
+    }
+
+    .profile-section:nth-child(2) {
+        animation-delay: 0.1s;
+    }
+
+    .profile-section:nth-child(3) {
+        animation-delay: 0.2s;
     }
 
     .section-title {
-        font-size: 18px;
+        font-size: 20px;
         font-weight: 600;
-        margin-bottom: 20px;
-        color: var(--dark-color);
+        margin-bottom: 25px;
+        color: var(--primary-color);
         display: flex;
         align-items: center;
-        gap: 10px;
+        gap: 12px;
+        padding-bottom: 15px;
+        border-bottom: 2px solid #f0f0f0;
     }
 
     .section-title i {
         color: var(--secondary-color);
+        font-size: 22px;
     }
 
     .rating-list {
@@ -96,134 +171,256 @@
         display: flex;
         align-items: center;
         justify-content: space-between;
-        padding: 12px 0;
-        border-bottom: 1px solid #eee;
+        padding: 18px 0;
+        border-bottom: 1px solid #f0f0f0;
+        transition: background-color 0.3s;
     }
 
     .rating-item:last-child {
         border-bottom: none;
     }
 
+    .rating-item:hover {
+        background-color: #f8f9fa;
+        margin: 0 -15px;
+        padding-left: 15px;
+        padding-right: 15px;
+        border-radius: 8px;
+    }
+
     .rating-info {
         display: flex;
         align-items: center;
-        gap: 12px;
+        gap: 15px;
     }
 
-    .rating-poster {
-        width: 40px;
-        height: 60px;
-        border-radius: 4px;
-        object-fit: cover;
+    .rating-icon {
+        width: 45px;
+        height: 45px;
+        background: linear-gradient(135deg, var(--primary-color), var(--accent-color));
+        border-radius: 10px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: white;
+        font-size: 18px;
     }
 
     .rating-title {
         font-weight: 600;
-        color: var(--dark-color);
+        color: var(--primary-color);
+        font-size: 16px;
     }
 
     .rating-date {
-        font-size: 12px;
+        font-size: 13px;
         color: #888;
+        margin-top: 3px;
     }
 
     .rating-score {
-        background: var(--secondary-color);
+        background: linear-gradient(135deg, var(--secondary-color), #d6304a);
         color: white;
-        padding: 6px 12px;
-        border-radius: 20px;
+        padding: 8px 16px;
+        border-radius: 25px;
         font-weight: 600;
-    }
-
-    .btn-danger {
-        background: #dc3545;
-        color: white;
-        border: none;
-        padding: 10px 20px;
-        border-radius: 8px;
-        cursor: pointer;
-        font-weight: 600;
-    }
-
-    .btn-danger:hover {
-        background: #c82333;
+        font-size: 15px;
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        box-shadow: 0 4px 15px rgba(233, 69, 96, 0.3);
     }
 
     .empty-state {
         text-align: center;
-        padding: 40px;
+        padding: 50px 20px;
         color: #888;
     }
 
     .empty-state i {
-        font-size: 48px;
-        margin-bottom: 15px;
-        opacity: 0.5;
+        font-size: 60px;
+        margin-bottom: 20px;
+        opacity: 0.3;
+        color: var(--secondary-color);
+    }
+
+    .empty-state p {
+        font-size: 16px;
+        margin-bottom: 20px;
+    }
+
+    .empty-state .btn {
+        background: linear-gradient(135deg, var(--secondary-color), #d6304a);
+        color: white;
+        padding: 12px 25px;
+        border-radius: 10px;
+        text-decoration: none;
+        font-weight: 600;
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        transition: all 0.3s;
+        box-shadow: 0 4px 15px rgba(233, 69, 96, 0.3);
+    }
+
+    .empty-state .btn:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 8px 25px rgba(233, 69, 96, 0.4);
+    }
+
+    .account-info {
+        color: #666;
+        font-size: 15px;
+        margin-bottom: 25px;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+    }
+
+    .account-info i {
+        color: var(--secondary-color);
+    }
+
+    .btn-logout {
+        background: linear-gradient(135deg, #e74c3c, #c0392b);
+        color: white;
+        border: none;
+        padding: 14px 28px;
+        border-radius: 10px;
+        cursor: pointer;
+        font-weight: 600;
+        font-size: 16px;
+        display: inline-flex;
+        align-items: center;
+        gap: 10px;
+        transition: all 0.3s;
+        text-decoration: none;
+        box-shadow: 0 4px 15px rgba(231, 76, 60, 0.3);
+    }
+
+    .btn-logout:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 8px 25px rgba(231, 76, 60, 0.4);
+    }
+
+    @media (max-width: 768px) {
+        .profile-page {
+            padding: 80px 15px 40px;
+        }
+
+        .profile-header {
+            padding: 35px 25px;
+        }
+
+        .profile-avatar {
+            width: 100px;
+            height: 100px;
+            font-size: 40px;
+        }
+
+        .profile-name {
+            font-size: 26px;
+        }
+
+        .profile-stats {
+            gap: 40px;
+        }
+
+        .stat-value {
+            font-size: 32px;
+        }
+
+        .profile-section {
+            padding: 25px 20px;
+        }
+    }
+
+    @media (max-width: 480px) {
+        .profile-stats {
+            flex-direction: column;
+            gap: 20px;
+        }
+
+        .rating-item {
+            flex-direction: column;
+            align-items: flex-start;
+            gap: 15px;
+        }
+
+        .rating-score {
+            align-self: flex-end;
+        }
     }
 </style>
 {% endblock %}
 
 {% block content %}
-<div class="profile-container">
-    <div class="profile-header">
-        <div class="profile-avatar">
-            <i class="fas fa-user"></i>
-        </div>
-        <h1 class="profile-name">{{ user.username }}</h1>
-        <p class="profile-email">{{ user.email }}</p>
-
-        <div class="profile-stats">
-            <div class="stat-item">
-                <div class="stat-value">{{ watchlist_count }}</div>
-                <div class="stat-label">İzleme Listesi</div>
+<div class="profile-page">
+    <div class="profile-container">
+        <div class="profile-header">
+            <div class="profile-avatar">
+                <i class="fas fa-user"></i>
             </div>
-            <div class="stat-item">
-                <div class="stat-value">{{ rating_count }}</div>
-                <div class="stat-label">Değerlendirme</div>
+            <h1 class="profile-name">{{ user.username }}</h1>
+            <p class="profile-email">{{ user.email }}</p>
+
+            <div class="profile-stats">
+                <div class="stat-item">
+                    <div class="stat-value">{{ watchlist_count }}</div>
+                    <div class="stat-label">İzleme Listesi</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-value">{{ rating_count }}</div>
+                    <div class="stat-label">Değerlendirme</div>
+                </div>
             </div>
         </div>
-    </div>
 
-    <div class="profile-section">
-        <h2 class="section-title">
-            <i class="fas fa-star"></i> Son Değerlendirmelerim
-        </h2>
+        <div class="profile-section">
+            <h2 class="section-title">
+                <i class="fas fa-star"></i> Son Değerlendirmelerim
+            </h2>
 
-        {% if user_ratings %}
-            <ul class="rating-list">
-                {% for rating in user_ratings %}
-                <li class="rating-item">
-                    <div class="rating-info">
-                        <div>
-                            <div class="rating-title">Film/Dizi #{{ rating.item_id }}</div>
-                            <div class="rating-date">{{ rating.created_at.strftime('%d.%m.%Y') }}</div>
+            {% if user_ratings %}
+                <ul class="rating-list">
+                    {% for rating in user_ratings %}
+                    <li class="rating-item">
+                        <div class="rating-info">
+                            <div class="rating-icon">
+                                <i class="fas fa-film"></i>
+                            </div>
+                            <div>
+                                <div class="rating-title">Film/Dizi #{{ rating.item_id }}</div>
+                                <div class="rating-date">{{ rating.created_at.strftime('%d.%m.%Y') }}</div>
+                            </div>
                         </div>
-                    </div>
-                    <span class="rating-score">
-                        <i class="fas fa-star"></i> {{ "%.1f"|format(rating.rating) }}
-                    </span>
-                </li>
-                {% endfor %}
-            </ul>
-        {% else %}
-            <div class="empty-state">
-                <i class="fas fa-star"></i>
-                <p>Henüz değerlendirme yapmadınız.</p>
-                <a href="/search" class="btn">Film Ara</a>
-            </div>
-        {% endif %}
-    </div>
+                        <span class="rating-score">
+                            <i class="fas fa-star"></i> {{ "%.1f"|format(rating.rating) }}
+                        </span>
+                    </li>
+                    {% endfor %}
+                </ul>
+            {% else %}
+                <div class="empty-state">
+                    <i class="fas fa-star"></i>
+                    <p>Henüz değerlendirme yapmadınız.</p>
+                    <a href="/search" class="btn"><i class="fas fa-search"></i> Film Ara</a>
+                </div>
+            {% endif %}
+        </div>
 
-    <div class="profile-section">
-        <h2 class="section-title">
-            <i class="fas fa-cog"></i> Hesap Ayarları
-        </h2>
-        <p style="color: #666; margin-bottom: 20px;">
-            Üyelik tarihi: {{ user.created_at.strftime('%d %B %Y') if user.created_at else 'Bilinmiyor' }}
-        </p>
-        <a href="{{ url_for('logout') }}" class="btn-danger">
-            <i class="fas fa-sign-out-alt"></i> Çıkış Yap
-        </a>
+        <div class="profile-section">
+            <h2 class="section-title">
+                <i class="fas fa-cog"></i> Hesap Ayarları
+            </h2>
+            <p class="account-info">
+                <i class="fas fa-calendar-alt"></i>
+                Üyelik tarihi: {{ user.created_at.strftime('%d %B %Y') if user.created_at else 'Bilinmiyor' }}
+            </p>
+            <a href="{{ url_for('logout') }}" class="btn-logout">
+                <i class="fas fa-sign-out-alt"></i> Çıkış Yap
+            </a>
+        </div>
     </div>
 </div>
 {% endblock %}
