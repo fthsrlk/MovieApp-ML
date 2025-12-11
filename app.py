@@ -14,8 +14,9 @@ import pickle
 import pandas as pd
 import numpy as np
 import re
-from flask import Flask, request, render_template, jsonify, redirect, url_for
+from flask import Flask, request, render_template, jsonify, redirect, url_for, flash
 from flask_cors import CORS
+from flask_login import LoginManager, login_user, logout_user, login_required, current_user
 import logging
 from dotenv import load_dotenv
 import sys
@@ -58,7 +59,25 @@ logger = logging.getLogger(__name__)
 
 # Yapılandırma
 app.config['SECRET_KEY'] = os.getenv('SECRET_KEY', 'gizli-anahtar-degistirin')
+app.config['SQLALCHEMY_DATABASE_URI'] = os.getenv('DATABASE_URL', 'sqlite:///movieapp.db')
+app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 TMDB_API_KEY = os.getenv('TMDB_API_KEY', '')
+
+# Database ve Auth kurulumu
+from db_models import db, bcrypt, User, Rating, WatchlistItem, Item
+db.init_app(app)
+bcrypt.init_app(app)
+
+# Flask-Login kurulumu
+login_manager = LoginManager()
+login_manager.init_app(app)
+login_manager.login_view = 'login'
+login_manager.login_message = 'Bu sayfayı görüntülemek için giriş yapmalısınız.'
+login_manager.login_message_category = 'danger'
+
+@login_manager.user_loader
+def load_user(user_id):
+    return User.query.get(int(user_id))
 MODEL_DIR = os.getenv('MODEL_DIR', 'ml_recommendation_engine/models')
 DATA_DIR = os.getenv('DATA_DIR', 'ml_recommendation_engine/data')
 
@@ -310,6 +329,101 @@ def inject_current_year():
 def inject_user_watchlist():
     global user_watchlist
     return {'user_watchlist': user_watchlist}
+
+# --- Authentication Routes ---
+
+@app.route('/register', methods=['GET', 'POST'])
+def register():
+    """Kullanıcı kayıt sayfası"""
+    if current_user.is_authenticated:
+        return redirect(url_for('index'))
+    
+    if request.method == 'POST':
+        username = request.form.get('username', '').strip()
+        email = request.form.get('email', '').strip().lower()
+        password = request.form.get('password', '')
+        password_confirm = request.form.get('password_confirm', '')
+        
+        # Validasyonlar
+        if len(username) < 3:
+            flash('Kullanıcı adı en az 3 karakter olmalıdır.', 'danger')
+            return render_template('register.html')
+        
+        if len(password) < 6:
+            flash('Şifre en az 6 karakter olmalıdır.', 'danger')
+            return render_template('register.html')
+        
+        if password != password_confirm:
+            flash('Şifreler eşleşmiyor.', 'danger')
+            return render_template('register.html')
+        
+        # Kullanıcı var mı kontrol et
+        if User.query.filter_by(email=email).first():
+            flash('Bu e-posta adresi zaten kayıtlı.', 'danger')
+            return render_template('register.html')
+        
+        if User.query.filter_by(username=username).first():
+            flash('Bu kullanıcı adı zaten alınmış.', 'danger')
+            return render_template('register.html')
+        
+        # Yeni kullanıcı oluştur
+        user = User(username=username, email=email)
+        user.set_password(password)
+        db.session.add(user)
+        db.session.commit()
+        
+        flash('Hesabınız oluşturuldu! Şimdi giriş yapabilirsiniz.', 'success')
+        return redirect(url_for('login'))
+    
+    return render_template('register.html')
+
+
+@app.route('/login', methods=['GET', 'POST'])
+def login():
+    """Kullanıcı giriş sayfası"""
+    if current_user.is_authenticated:
+        return redirect(url_for('index'))
+    
+    if request.method == 'POST':
+        email = request.form.get('email', '').strip().lower()
+        password = request.form.get('password', '')
+        
+        user = User.query.filter_by(email=email).first()
+        
+        if user and user.check_password(password):
+            login_user(user)
+            flash(f'Hoş geldiniz, {user.username}!', 'success')
+            next_page = request.args.get('next')
+            return redirect(next_page if next_page else url_for('index'))
+        else:
+            flash('E-posta veya şifre hatalı.', 'danger')
+    
+    return render_template('login.html')
+
+
+@app.route('/logout')
+@login_required
+def logout():
+    """Kullanıcı çıkış"""
+    logout_user()
+    flash('Başarıyla çıkış yaptınız.', 'success')
+    return redirect(url_for('index'))
+
+
+@app.route('/profile')
+@login_required
+def profile():
+    """Kullanıcı profil sayfası"""
+    user_ratings = Rating.query.filter_by(user_id=current_user.id).order_by(Rating.created_at.desc()).limit(10).all()
+    watchlist_count = WatchlistItem.query.filter_by(user_id=current_user.id).count()
+    rating_count = Rating.query.filter_by(user_id=current_user.id).count()
+    
+    return render_template('profile.html',
+                          user=current_user,
+                          user_ratings=user_ratings,
+                          watchlist_count=watchlist_count,
+                          rating_count=rating_count)
+
 
 # --- Web UI Routes ---
 
@@ -630,30 +744,64 @@ def api_authenticate():
 
 @app.route('/api/watchlist', methods=['GET', 'POST', 'DELETE'])
 def api_watchlist():
-    """İzleme listesi API"""
-    global user_watchlist
+    """İzleme listesi API - Database destekli"""
+    # Giriş yapmış kullanıcı varsa database kullan
+    if current_user.is_authenticated:
+        user_id = current_user.id
+        
+        if request.method == 'GET':
+            items = WatchlistItem.query.filter_by(user_id=user_id).all()
+            return jsonify({'watchlist': [item.to_dict() for item in items]})
 
-    if request.method == 'GET':
-        return jsonify({'watchlist': list(user_watchlist.values())})
+        elif request.method == 'POST':
+            data = request.json
+            item_id = data.get('item_id')
+            media_type = data.get('media_type', 'movie')
+            
+            existing = WatchlistItem.query.filter_by(
+                user_id=user_id, item_id=item_id, media_type=media_type
+            ).first()
+            
+            if not existing:
+                new_item = WatchlistItem(user_id=user_id, item_id=item_id, media_type=media_type)
+                db.session.add(new_item)
+                db.session.commit()
+            
+            return jsonify({'success': True, 'message': 'Listeye eklendi'})
 
-    elif request.method == 'POST':
-        data = request.json
-        item_id = str(data.get('item_id'))
-        user_watchlist[item_id] = data
-        return jsonify({'success': True, 'message': 'Listeye eklendi'})
+        elif request.method == 'DELETE':
+            data = request.json
+            item_id = data.get('item_id')
+            media_type = data.get('media_type', 'movie')
+            
+            WatchlistItem.query.filter_by(
+                user_id=user_id, item_id=item_id, media_type=media_type
+            ).delete()
+            db.session.commit()
+            
+            return jsonify({'success': True, 'message': 'Listeden çıkarıldı'})
+    else:
+        # Anonim kullanıcılar için bellekte tut (eski davranış)
+        global user_watchlist
+        
+        if request.method == 'GET':
+            return jsonify({'watchlist': list(user_watchlist.values())})
+        elif request.method == 'POST':
+            data = request.json
+            item_id = str(data.get('item_id'))
+            user_watchlist[item_id] = data
+            return jsonify({'success': True, 'message': 'Listeye eklendi'})
+        elif request.method == 'DELETE':
+            data = request.json
+            item_id = str(data.get('item_id'))
+            if item_id in user_watchlist:
+                del user_watchlist[item_id]
+            return jsonify({'success': True, 'message': 'Listeden çıkarıldı'})
 
-    elif request.method == 'DELETE':
-        data = request.json
-        item_id = str(data.get('item_id'))
-        if item_id in user_watchlist:
-            del user_watchlist[item_id]
-        return jsonify({'success': True, 'message': 'Listeden çıkarıldı'})
 
 @app.route('/api/watchlist/add', methods=['POST'])
 def api_watchlist_add():
-    """İzleme listesine ekle"""
-    global user_watchlist
-
+    """İzleme listesine ekle - Database destekli"""
     data = request.json
     media_type = data.get('media_type', 'movie')
     item_id = data.get('item_id')
@@ -661,20 +809,27 @@ def api_watchlist_add():
     if not item_id:
         return jsonify({'success': False, 'error': 'item_id gerekli'}), 400
 
-    # Benzersiz anahtar oluştur
-    key = f"{media_type}_{item_id}"
-    user_watchlist[key] = {
-        'item_id': item_id,
-        'media_type': media_type
-    }
+    if current_user.is_authenticated:
+        existing = WatchlistItem.query.filter_by(
+            user_id=current_user.id, item_id=item_id, media_type=media_type
+        ).first()
+        
+        if not existing:
+            new_item = WatchlistItem(user_id=current_user.id, item_id=item_id, media_type=media_type)
+            db.session.add(new_item)
+            db.session.commit()
+        
+        return jsonify({'success': True, 'message': 'Listeye eklendi'})
+    else:
+        global user_watchlist
+        key = f"{media_type}_{item_id}"
+        user_watchlist[key] = {'item_id': item_id, 'media_type': media_type}
+        return jsonify({'success': True, 'message': 'Listeye eklendi'})
 
-    return jsonify({'success': True, 'message': 'Listeye eklendi'})
 
 @app.route('/api/watchlist/remove', methods=['POST'])
 def api_watchlist_remove():
-    """İzleme listesinden çıkar"""
-    global user_watchlist
-
+    """İzleme listesinden çıkar - Database destekli"""
     data = request.json
     media_type = data.get('media_type', 'movie')
     item_id = data.get('item_id')
@@ -682,11 +837,18 @@ def api_watchlist_remove():
     if not item_id:
         return jsonify({'success': False, 'error': 'item_id gerekli'}), 400
 
-    key = f"{media_type}_{item_id}"
-    if key in user_watchlist:
-        del user_watchlist[key]
-
-    return jsonify({'success': True, 'message': 'Listeden çıkarıldı'})
+    if current_user.is_authenticated:
+        WatchlistItem.query.filter_by(
+            user_id=current_user.id, item_id=item_id, media_type=media_type
+        ).delete()
+        db.session.commit()
+        return jsonify({'success': True, 'message': 'Listeden çıkarıldı'})
+    else:
+        global user_watchlist
+        key = f"{media_type}_{item_id}"
+        if key in user_watchlist:
+            del user_watchlist[key]
+        return jsonify({'success': True, 'message': 'Listeden çıkarıldı'})
 
 @app.route('/api/rate', methods=['POST'])
 def api_rate():
@@ -734,6 +896,11 @@ def api_rate():
 
 if __name__ == '__main__':
     logger.info("MovieApp ML Backend başlatılıyor...")
+
+    # Database tablolarını oluştur
+    with app.app_context():
+        db.create_all()
+        logger.info("Database tabloları oluşturuldu/kontrol edildi")
 
     # Verileri ve modelleri yükle
     load_data()

@@ -30,7 +30,13 @@
             <li><a href="{{ url_for('search') }}" class="overlay-nav-item {% if request.endpoint == 'search' %}active{% endif %}">Ara</a></li>
             <li><a href="{{ url_for('watchlist') }}" class="overlay-nav-item {% if request.endpoint == 'watchlist' %}active{% endif %}">İzleme Listem</a></li>
             <li><a href="{{ url_for('recommendations') }}" class="overlay-nav-item {% if request.endpoint == 'recommendations' %}active{% endif %}">Öneriler</a></li>
-            <li><button id="clearAllDataBtnOverlay" class="overlay-nav-item btn-danger">Tüm Verileri Temizle</button></li> {# ID değiştirildi #}
+            <li style="border-top: 1px solid rgba(255,255,255,0.2); margin: 15px 0; padding-top: 15px;">
+                {% if current_user.is_authenticated %}
+                    <a href="{{ url_for('profile') }}" class="overlay-nav-item"><i class="fas fa-user"></i> {{ current_user.username }}</a>
+                {% else %}
+                    <a href="{{ url_for('login') }}" class="overlay-nav-item"><i class="fas fa-sign-in-alt"></i> Giriş Yap</a>
+                {% endif %}
+            </li>
         </ul>
     </nav>
 
