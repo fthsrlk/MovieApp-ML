@@ -1,392 +1,200 @@
-# 🤖 MovieApp ML Backend
+# MovieApp ML - Hibrit Film Oneri Sistemi
 
-Modern hibrit film öneri sistemi - Python Flask backend, makine öğrenmesi algoritmaları ve TMDb API entegrasyonu ile gelişmiş film önerileri.
+Modern hibrit film oneri sistemi - Web arayuzu + REST API + Makine ogrenmesi algoritmalari.
 
-## ✨ Özellikler
+## Ozellikler
 
-### 🧠 Makine Öğrenmesi Özellikleri
-- **Hibrit Öneri Sistemi**: Collaborative + Content-based filtering
-- **Scikit-learn**: TF-IDF, Cosine Similarity, KNN algoritmaları
-- **Real-time Learning**: Kullanıcı etkileşimlerinden öğrenme
-- **Çoklu Algoritma Desteği**: Farklı senaryolar için optimize edilmiş modeller
+### Web Arayuzu
+- Ana sayfa (populer filmler/diziler)
+- Film/dizi arama
+- Detay sayfalari
+- Kisisellestirilmis oneriler
+- Izleme listesi
 
-### 🌐 Web API
-- **Flask RESTful API**: Modern ve scalable backend architecture
-- **JWT Authentication**: Güvenli kullanıcı kimlik doğrulama
-- **Rate Limiting**: API abuse koruması
-- **CORS Support**: Cross-origin istekleri desteği
+### Makine Ogrenmesi
+- **Collaborative Filtering**: Matrix Factorization, SVD
+- **Content-Based Filtering**: TF-IDF, Cosine Similarity
+- **Hybrid System**: Agirlikli kombinasyon
 
-### 🎯 Akıllı Öneri Motorları
+### REST API
+- JWT Authentication
+- CORS destegi
+- Tum islemler icin endpoint'ler
 
-#### Content-Based Filtering
-- **Genre Similarity**: Tür benzerlikleri
-- **Cast & Crew**: Oyuncu ve yönetmen benzerlikler
-- **Plot Analysis**: Hikaye içeriği analizi
-- **TF-IDF Vectorization**: Metin tabanlı benzerlik
+## Kurulum
 
-#### Collaborative Filtering
-- **User-User**: Benzer kullanıcı tercihleri
-- **Item-Item**: Film/dizi benzerlikleri
-- **Matrix Factorization**: Latent factor modelleri
-- **Cold Start Problem**: Yeni kullanıcılar için çözümler
-
-#### Hybrid Approach
-- **Weighted Combination**: Algoritma ağırlıklandırması
-- **Switch Hybrid**: Duruma göre algoritma seçimi
-- **Feature Combination**: Çoklu özellik entegrasyonu
-
-### 📊 Veri İşleme
-- **TMDb API Integration**: 500,000+ film ve dizi verisi
-- **Data Preprocessing**: Temizlik ve normalizasyon
-- **Feature Engineering**: Akıllı özellik çıkarımı
-- **Real-time Updates**: Canlı veri senkronizasyonu
-
-## 🏗️ Teknik Mimari
-
-### 🔧 Teknoloji Stack
-```python
-Backend Framework: Flask 2.3+
-ML Libraries: scikit-learn, pandas, numpy
-Database: SQLite (production'da PostgreSQL)
-Caching: Redis (optional)
-API: TMDb API v3
-Authentication: JWT tokens
-Deployment: Docker, Gunicorn, Nginx
-```
-
-### 📦 Proje Yapısı
-```
-ml_recommendation_engine/
-├── api/                    # Flask API endpoints
-│   ├── auth.py            # Authentication routes
-│   ├── movies.py          # Film endpoints
-│   ├── recommendations.py # Öneri endpoints
-│   └── users.py           # Kullanıcı endpoints
-├── app/                   # Web application
-│   ├── templates/         # HTML templates
-│   ├── static/           # CSS, JS, images
-│   └── forms.py          # WTForms
-├── data/                  # Veri dosyaları
-│   ├── loader.py         # Veri yükleme
-│   ├── preprocessor.py   # Veri işleme
-│   └── movies.csv        # Film veri seti
-├── models/               # ML modelleri
-│   ├── collaborative.py # Collaborative filtering
-│   ├── content_based.py  # Content-based filtering
-│   ├── hybrid.py         # Hibrit sistem
-│   └── trainer.py        # Model eğitimi
-├── main.py              # Ana uygulama
-├── config.py            # Konfigürasyon
-└── requirements.txt     # Python dependencies
-```
-
-## 🚀 Kurulum ve Çalıştırma
-
-### Gereksinimler
-- Python 3.8+
-- pip (Python package manager)
-- TMDb API Key
-- (Opsiyonel) Redis server
-
-### Hızlı Başlangıç
-
-1. **Repository'yi klonlayın:**
+### 1. Repository'yi klonlayin
 ```bash
-git clone https://github.com/fthsrlk/MovieApp-ML-Backend.git
-cd MovieApp-ML-Backend
+git clone https://github.com/fthsrlk/MovieApp-ML.git
+cd MovieApp-ML
 ```
 
-2. **Virtual environment oluşturun:**
+### 2. Virtual environment olusturun
 ```bash
 python -m venv venv
-source venv/bin/activate  # Linux/Mac
-# veya
-venv\Scripts\activate     # Windows
+
+# Windows
+venv\Scripts\activate
+
+# Linux/Mac
+source venv/bin/activate
 ```
 
-3. **Dependencies yükleyin:**
+### 3. Bagimliliklari yukleyin
 ```bash
 pip install -r requirements.txt
 ```
 
-4. **Environment variables ayarlayın:**
+### 4. Ortam degiskenlerini ayarlayin
 ```bash
 cp .env.example .env
-# .env dosyasını düzenleyin:
-TMDB_API_KEY=your_api_key_here
-SECRET_KEY=your_secret_key
-FLASK_ENV=development
 ```
 
-5. **Veritabanını başlatın:**
+`.env` dosyasini duzenleyin:
+```
+TMDB_API_KEY=your_tmdb_api_key_here
+SECRET_KEY=your_secret_key_here
+API_HOST=0.0.0.0
+API_PORT=5000
+API_DEBUG=True
+```
+
+### 5. Uygulamayi calistirin
 ```bash
-python -c "from main import create_app; create_app().app_context().push(); from models import db; db.create_all()"
+python app.py
 ```
 
-6. **Uygulamayı çalıştırın:**
-```bash
-python main.py
+Tarayicinizda acin: http://localhost:5000
+
+## Proje Yapisi
+
+```
+MovieApp-ML/
+├── app.py                      # Ana uygulama (Web + API)
+├── wsgi.py                     # Production server
+├── requirements.txt
+├── .env.example
+├── README.md
+└── ml_recommendation_engine/
+    ├── api/
+    │   └── app.py              # Sadece REST API
+    ├── models/
+    │   ├── collaborative.py    # Collaborative Filtering
+    │   ├── content_based.py    # Content-Based Filtering
+    │   └── hybrid.py           # Hybrid Recommender
+    ├── data/
+    │   ├── loader.py           # TMDb veri yukleme
+    │   ├── preprocessor.py     # Veri isleme
+    │   ├── items.csv           # 919 film/dizi
+    │   └── ratings.csv         # 1673 kullanici degerlendirmesi
+    └── app/
+        ├── templates/          # HTML sablonlari
+        │   ├── base.html
+        │   ├── index.html
+        │   ├── search.html
+        │   ├── detail.html
+        │   ├── recommendations.html
+        │   └── watchlist.html
+        └── static/
+            ├── css/style.css
+            └── js/main.js
 ```
 
-### Docker ile Çalıştırma
+## Web Sayfalari
 
-```bash
-# Docker image oluştur
-docker build -t movieapp-ml .
+| Sayfa | URL | Aciklama |
+|-------|-----|----------|
+| Ana Sayfa | `/` | Populer filmler ve diziler |
+| Arama | `/search?q=batman` | Film/dizi arama |
+| Film Detay | `/movie/27205` | Film detaylari |
+| Dizi Detay | `/tv/1399` | Dizi detaylari |
+| Oneriler | `/recommendations` | ML tabanli oneriler |
+| Izleme Listesi | `/watchlist` | Kullanici listesi |
 
-# Container çalıştır
-docker run -p 5000:5000 -e TMDB_API_KEY=your_key movieapp-ml
-```
+## API Endpoints
 
-## 📡 API Endpoints
-
-### Authentication
+### Sistem
 ```http
-POST /api/auth/register    # Kullanıcı kaydı
-POST /api/auth/login       # Giriş yapma
-POST /api/auth/logout      # Çıkış yapma
-GET  /api/auth/profile     # Profil bilgileri
+GET /api/health              # Sistem durumu
 ```
 
-### Movies & TV Shows
+### Oneriler
 ```http
-GET  /api/movies/search    # Film arama
-GET  /api/movies/{id}      # Film detayları
-GET  /api/movies/popular   # Popüler filmler
-GET  /api/movies/trending  # Trend filmler
-POST /api/movies/{id}/rate # Film puanlama
+GET /api/recommendations/1   # Kullanici onerileri
+GET /api/similar/27205       # Benzer icerikler
 ```
 
-### Recommendations
+### Arama
 ```http
-GET  /api/recommendations/movies/{user_id}     # Kişiselleştirilmiş öneriler
-GET  /api/recommendations/similar/{movie_id}   # Benzer filmler
-GET  /api/recommendations/trending             # Trend öneriler
-POST /api/recommendations/feedback             # Öneri geri bildirimi
+GET /api/search?q=inception  # Arama
 ```
 
-### Örnek API Kullanımı
+### Degerlendirme
+```http
+POST /api/ratings            # Puan ekleme
+```
+
+### Kimlik Dogrulama
+```http
+POST /api/auth               # Giris
+```
+
+### Izleme Listesi
+```http
+GET    /api/watchlist        # Liste getir
+POST   /api/watchlist        # Ekle
+DELETE /api/watchlist        # Cikar
+```
+
+## Ornek API Kullanimi
 
 ```python
 import requests
 
-# Giriş yapma
-response = requests.post('http://localhost:5000/api/auth/login', json={
-    'email': 'user@example.com',
-    'password': 'password123'
-})
-token = response.json()['access_token']
+# Sistem durumu
+response = requests.get('http://localhost:5000/api/health')
+print(response.json())
 
-# Kişiselleştirilmiş öneriler alma
-headers = {'Authorization': f'Bearer {token}'}
-recommendations = requests.get(
-    'http://localhost:5000/api/recommendations/movies/1',
-    headers=headers
-).json()
+# Kullanici onerileri
+response = requests.get('http://localhost:5000/api/recommendations/1')
+recommendations = response.json()
+
+# Benzer filmler
+response = requests.get('http://localhost:5000/api/similar/27205')
+similar = response.json()
 ```
 
-## 🧮 Makine Öğrenmesi Algoritmaları
+## Production Deployment
 
-### Content-Based Filtering
-```python
-# TF-IDF ile içerik benzerliği
-from sklearn.feature_extraction.text import TfidfVectorizer
-from sklearn.metrics.pairwise import cosine_similarity
-
-# Film özelliklerini vektörize et
-tfidf = TfidfVectorizer(stop_words='english')
-tfidf_matrix = tfidf.fit_transform(movie_features)
-
-# Cosine similarity hesapla
-similarity_matrix = cosine_similarity(tfidf_matrix)
-```
-
-### Collaborative Filtering
-```python
-# KNN ile collaborative filtering
-from sklearn.neighbors import NearestNeighbors
-
-# User-item matrix oluştur
-user_item_matrix = ratings.pivot_table(
-    index='user_id', columns='movie_id', values='rating'
-)
-
-# KNN modeli eğit
-knn = NearestNeighbors(metric='cosine', algorithm='brute')
-knn.fit(user_item_matrix.fillna(0))
-```
-
-### Hybrid System
-```python
-# Hibrit sistem - ağırlıklı kombinasyon
-def hybrid_recommendation(user_id, movie_id, weights=[0.6, 0.4]):
-    content_score = content_based_similarity(movie_id)
-    collab_score = collaborative_similarity(user_id, movie_id)
-    
-    return weights[0] * content_score + weights[1] * collab_score
-```
-
-## 📊 Performans Metrikleri
-
-### Model Değerlendirme
-- **Precision@K**: Top-K önerilerin kesinliği
-- **Recall@K**: Top-K önerilerin duyarlılığı
-- **F1-Score**: Harmonic mean of precision and recall
-- **RMSE**: Root Mean Square Error for rating prediction
-- **Coverage**: Sistem tarafından önerilen unique items
-
-### Benchmarks
-```
-Content-Based Model:
-- Precision@10: 0.78
-- Recall@10: 0.65
-- Coverage: 0.92
-
-Collaborative Model:
-- Precision@10: 0.82
-- Recall@10: 0.71
-- RMSE: 0.89
-
-Hybrid Model:
-- Precision@10: 0.85
-- Recall@10: 0.74
-- F1-Score: 0.79
-```
-
-## 🔧 Yapılandırma
-
-### Model Parametreleri
-```python
-# config.py
-RECOMMENDATION_CONFIG = {
-    'content_weight': 0.6,      # Content-based ağırlığı
-    'collaborative_weight': 0.4, # Collaborative ağırlığı
-    'min_ratings': 5,           # Minimum rating sayısı
-    'top_k': 20,               # Öneri sayısı
-    'similarity_threshold': 0.5, # Benzerlik eşiği
-    'update_frequency': 'daily'  # Model güncelleme sıklığı
-}
-```
-
-### Cache Ayarları
-```python
-CACHE_CONFIG = {
-    'redis_host': 'localhost',
-    'redis_port': 6379,
-    'cache_timeout': 3600,      # 1 saat
-    'cache_recommendations': True,
-    'cache_movie_data': True
-}
-```
-
-## 🧪 Test Etme
-
+### Gunicorn
 ```bash
-# Unit testler
-python -m pytest tests/
-
-# Coverage report
-python -m pytest --cov=app tests/
-
-# Load testing
-locust -f tests/load_test.py --host=http://localhost:5000
+gunicorn --bind 0.0.0.0:5000 --workers 4 wsgi:create_app
 ```
 
-## 📈 Production Deployment
-
-### Gunicorn ile Production
+### Waitress (Windows)
 ```bash
-gunicorn --bind 0.0.0.0:5000 --workers 4 wsgi:app
+waitress-serve --port=5000 --call wsgi:create_app
 ```
 
-### Nginx Konfigürasyonu
-```nginx
-server {
-    listen 80;
-    server_name your-domain.com;
-    
-    location / {
-        proxy_pass http://127.0.0.1:5000;
-        proxy_set_header Host $host;
-        proxy_set_header X-Real-IP $remote_addr;
-    }
-}
+### Docker
+```bash
+docker build -t movieapp-ml .
+docker run -p 5000:5000 -e TMDB_API_KEY=your_key movieapp-ml
 ```
 
-### Docker Compose
-```yaml
-version: '3.8'
-services:
-  app:
-    build: .
-    ports:
-      - "5000:5000"
-    environment:
-      - TMDB_API_KEY=${TMDB_API_KEY}
-    depends_on:
-      - redis
-  
-  redis:
-    image: redis:alpine
-    ports:
-      - "6379:6379"
-```
+## Teknoloji Stack
 
-## 🔍 Monitoring ve Analytics
+- **Backend**: Flask 2.0+
+- **ML**: scikit-learn, pandas, numpy
+- **API**: TMDb API v3
+- **Auth**: JWT (PyJWT)
+- **Frontend**: HTML, CSS, JavaScript
 
-### Metriklerin Takibi
-- **API Response Times**: Endpoint performans metrikleri
-- **Recommendation Quality**: A/B test sonuçları
-- **User Engagement**: Click-through rates
-- **Model Accuracy**: Sürekli model değerlendirme
+## Lisans
 
-### Logging
-```python
-import logging
+MIT License
 
-# Recommendation events
-logger.info(f"User {user_id} received {len(recommendations)} recommendations")
-logger.info(f"Click-through rate: {ctr:.2%}")
-```
+## Iletisim
 
-## 🤝 Katkıda Bulunma
-
-1. Fork edin
-2. Feature branch oluşturun (`git checkout -b feature/amazing-ml-feature`)
-3. Değişikliklerinizi commit edin (`git commit -m 'Add amazing ML feature'`)
-4. Branch'inizi push edin (`git push origin feature/amazing-ml-feature`)
-5. Pull Request oluşturun
-
-### Development Guidelines
-- PEP 8 Python style guide'ı takip edin
-- Unit testler yazın
-- Docstrings ekleyin
-- Model performansını benchmark edin
-
-## 📚 Kaynaklar ve Referanslar
-
-- [Recommender Systems Handbook](https://link.springer.com/book/10.1007/978-1-4899-7637-6)
-- [scikit-learn Documentation](https://scikit-learn.org/)
-- [Flask RESTful API Guide](https://flask-restful.readthedocs.io/)
-- [TMDb API Documentation](https://developers.themoviedb.org/3)
-
-## 📝 Lisans
-
-Bu proje MIT lisansı altında lisanslanmıştır. Detaylar için `LICENSE` dosyasına bakın.
-
-## 📞 İletişim
-
-**Fatih Şarlak**
+**Fatih Sarlak**
 - GitHub: [@fthsrlk](https://github.com/fthsrlk)
-- Email: [email@example.com]
-
-## 🙏 Teşekkürler
-
-- [TMDb](https://www.themoviedb.org/) - Film verileri için
-- [scikit-learn](https://scikit-learn.org/) - ML kütüphanesi için
-- [Flask](https://flask.palletsprojects.com/) - Web framework için
-- [MovieLens](https://grouplens.org/datasets/movielens/) - Araştırma veri seti için
-
----
-
-⭐ **Bu projeyi beğendiyseniz star vermeyi unutmayın!** 
