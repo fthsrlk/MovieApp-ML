@@ -304,12 +304,14 @@ def detail(media_type, item_id):
     """Detay sayfası - film veya dizi"""
     if media_type == 'movie':
         item = get_movie_details(item_id)
+        title = item.get('title', '') if item else ''
     else:
         item = get_tv_details(item_id)
+        title = item.get('name', '') if item else ''
 
     if not item:
         return redirect(url_for('index'))
-    return render_template('detail.html', item=item, content_type=media_type)
+    return render_template('detail.html', item=item, content_type=media_type, title=title)
 
 @app.route('/movie/<int:movie_id>')
 def movie_detail(movie_id):
@@ -317,7 +319,8 @@ def movie_detail(movie_id):
     movie = get_movie_details(movie_id)
     if not movie:
         return redirect(url_for('index'))
-    return render_template('detail.html', item=movie, content_type='movie')
+    title = movie.get('title', '')
+    return render_template('detail.html', item=movie, content_type='movie', title=title)
 
 @app.route('/tv/<int:tv_id>')
 def tv_detail(tv_id):
@@ -325,7 +328,8 @@ def tv_detail(tv_id):
     tv = get_tv_details(tv_id)
     if not tv:
         return redirect(url_for('index'))
-    return render_template('detail.html', item=tv, content_type='tv')
+    title = tv.get('name', '')
+    return render_template('detail.html', item=tv, content_type='tv', title=title)
 
 @app.route('/recommendations')
 def recommendations():
@@ -356,9 +360,44 @@ def recommendations():
 @app.route('/watchlist')
 def watchlist():
     """İzleme listesi sayfası"""
-    return render_template('watchlist.html', watchlist=user_watchlist)
+    movie_items = []
+    tv_items = []
+
+    # user_watchlist'ten film ve dizi detaylarını al
+    for key, item_data in user_watchlist.items():
+        item_id = item_data.get('item_id')
+        media_type = item_data.get('media_type', 'movie')
+
+        if media_type == 'movie':
+            movie_detail = get_movie_details(item_id)
+            if movie_detail:
+                movie_items.append(movie_detail)
+        else:
+            tv_detail = get_tv_details(item_id)
+            if tv_detail:
+                tv_items.append(tv_detail)
+
+    return render_template('watchlist.html',
+                          movie_items=movie_items,
+                          tv_items=tv_items,
+                          watchlist=user_watchlist)
 
 # --- REST API Routes ---
+
+@app.route('/api/debug/movie/<int:movie_id>')
+def debug_movie(movie_id):
+    """Debug: Film detaylarini goster"""
+    logger.info(f'DEBUG: TMDB_API_KEY = {TMDB_API_KEY[:10] if TMDB_API_KEY else "EMPTY"}...')
+    movie = get_movie_details(movie_id)
+    if movie:
+        return jsonify({
+            'status': 'ok',
+            'id': movie.get('id'),
+            'title': movie.get('title'),
+            'poster_path': movie.get('poster_path'),
+            'api_key_set': bool(TMDB_API_KEY)
+        })
+    return jsonify({'status': 'error', 'message': 'Movie not found', 'api_key_set': bool(TMDB_API_KEY)})
 
 @app.route('/api/health')
 def health_check():
@@ -596,6 +635,48 @@ def api_watchlist_remove():
         del user_watchlist[key]
 
     return jsonify({'success': True, 'message': 'Listeden çıkarıldı'})
+
+@app.route('/api/rate', methods=['POST'])
+def api_rate():
+    """Kullanıcı değerlendirmesi API endpoint'i"""
+    global ratings_df
+
+    data = request.json
+    media_type = data.get('media_type', 'movie')
+    item_id = data.get('item_id')
+    rating = data.get('rating')
+    user_id = data.get('user_id', 1)
+
+    if not item_id or not rating:
+        return jsonify({'success': False, 'error': 'item_id ve rating gerekli'}), 400
+
+    try:
+        if ratings_df is None:
+            ratings_df = pd.DataFrame(columns=['user_id', 'item_id', 'rating', 'timestamp'])
+
+        mask = (ratings_df['user_id'] == user_id) & (ratings_df['item_id'] == item_id)
+        if mask.any():
+            ratings_df.loc[mask, 'rating'] = rating
+            ratings_df.loc[mask, 'timestamp'] = pd.Timestamp.now().timestamp()
+        else:
+            new_rating = pd.DataFrame({
+                'user_id': [user_id],
+                'item_id': [item_id],
+                'rating': [rating],
+                'timestamp': [pd.Timestamp.now().timestamp()]
+            })
+            ratings_df = pd.concat([ratings_df, new_rating], ignore_index=True)
+
+        ratings_df.to_csv(RATINGS_DATA_PATH, index=False)
+
+        return jsonify({
+            'success': True,
+            'message': 'Değerlendirme kaydedildi'
+        })
+
+    except Exception as e:
+        logger.error(f'Değerlendirme hatası: {str(e)}')
+        return jsonify({'success': False, 'error': str(e)}), 500
 
 # --- Uygulama Başlatma ---
 
